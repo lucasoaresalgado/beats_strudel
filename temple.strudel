@@ -1,0 +1,58 @@
+samples('github:tidalcycles/dirt-samples')
+setcpm(76/4)
+
+let loopA = "{f4 c5 a4 f5 c5}%8"
+let loopB = "{f4 ab4 c5 g4 eb5 c5}%8"
+let loopC = "{c5 a4 f4 c5 g5}%8"
+let loops = "<0 0 1 0 2 0 1 2>".pick([loopA, loopB, loopC])
+
+// tape wobble — everything pitched by the same drifting amount
+let wobble = perlin.range(-.12,.12).slow(13)
+
+stack(
+  // 909 kick, slowed and thickened
+  s("<[bd ~ ~ bd ~ ~ ~ ~] [bd ~ ~ ~ ~ bd ~ ~]>".slow(4))
+    .bank("RolandTR909").gain(1.15).lpf(400).shape(.4).room(.3),
+
+  // clap smeared into the reverb — the screwed signature
+  s("<[~ ~ ~ ~ cp ~ ~ ~] [~ ~ ~ ~ cp ~ ~ sd]>".slow(8))
+    .bank("RolandTR909").gain(.7).crush(7)
+    .speed(.8).room(.85).size(9).orbit(2),
+
+  // hats, dragging, thinning in and out
+  s("hh*8").bank("RolandTR909")
+    .speed(.85)
+    .gain(sine.range(.14,.34).slow(6))
+    .degradeBy(sine.range(.25,.65).slow(8))
+    .pan(perlin.range(.25,.75)),
+
+  // the plucks — same figure, now blurred
+  note(loops).add(note(wobble))
+    .sound("sawtooth").attack(.03).release(.8).clip(.95)
+    .lpf(perlin.range(300,1400).slow(20)).lpq(9)
+    .gain(.34).shape(.25)
+    .room(.9).size(9).pan(.4)
+    .delay(.35).delaytime(.5).delayfeedback(.4),
+
+  // pad two octaves up, mostly reverb tail
+  note(loops).add(note(12)).add(note(wobble))
+    .sound("triangle").attack(2.5).release(4)
+    .gain(.13).lpf(1800)
+    .room(.95).size(12)
+    .delay(.5).delaytime(.75).delayfeedback(.55)
+    .mask("<1 1 0 1 1 0 0 1>"),
+
+  // sub, slow and heavy
+  note("<f1 bb0 db1 c1 f1 ab0 eb1 c1>")
+    .struct("<[t ~ ~ ~ t ~ ~ ~] [t ~ ~ t ~ ~ ~ ~]>".slow(4))
+    .sound("sine").attack(.02).release(.9).gain(.95).shape(.2),
+
+  // vocal-as-texture: pitched down, chopped, buried
+  s("space").fit().chop(6)
+    .speed(.55).gain(.16)
+    .lpf(1600).crush(8)
+    .room(.9).size(10).orbit(2)
+    .degradeBy(.55)
+    .sometimesBy(.2, x => x.rev())
+    .mask("<0 1 0 0 1 1 0 1>".slow(2))
+)

@@ -1,0 +1,52 @@
+// katana zero / overdose-flavored — driving, dry, locked
+setcps(0.5) // faster and rigid; no swing anywhere
+
+// the engine: 16th saw bass, one note, pumping
+const bass = note("<a1!8 a1!8 f1!8 g1!8>*16")
+  .s("sawtooth")
+  .cutoff(perlin.range(220,900).slow(29))
+  .resonance(9)
+  .attack(0.002).decay(0.07).sustain(0).release(0.04)
+  .gain(0.75).shape(0.35)
+  .pan(0.5)
+
+// sub reinforcing the root only on downbeats
+const sub = note("<a0 a0 f0 g0>")
+  .s("sine")
+  .attack(0.005).decay(0.5).sustain(0.4).release(0.2)
+  .gain(0.8).lpf(110)
+
+// four-on-the-floor, dry and forward
+const bateria = stack(
+  s("bd*4").bank("RolandTR909").gain(1).shape(0.5).lpf(4000),
+  s("~ cp ~ cp").bank("RolandTR909").gain(0.55).room(0.15).size(0.3),
+  s("hh*16").bank("RolandTR909")
+    .gain("0.3 0.14 0.22 0.14".fast(4))
+    .pan(0.5)
+    .degradeBy(0.1),
+  s("~ ~ ~ oh").bank("RolandTR909").gain(0.3).every(4, x => x.gain(0.45))
+)
+
+// stabs: the tension layer, rhythmic not melodic
+const stabs = note("<[c3,e3,g3] [d3,f3,a3] [f3,a3,c4] [g3,b3,d4]>")
+  .struct("~ t ~ ~ t ~ t ~")
+  .s("supersaw")
+  .cutoff(sine.range(700,3200).slow(16))
+  .resonance(11)
+  .attack(0.002).decay(0.12).sustain(0).release(0.08)
+  .gain(0.32).shape(0.25)
+  .delay(0.22).delaytime(0.09375).delayfeedback(0.3)
+  .mask("<0 1 1 1>/2")
+
+// lead — enters late, single line, no vibrato drift
+const lead = note("<e5 ~ d5 c5 ~ b4 c5 ~>")
+  .s("square")
+  .add(note("[0,0.07]"))
+  .cutoff(3200)
+  .attack(0.005).decay(0.25).sustain(0.3).release(0.2)
+  .gain(0.22)
+  .delay(0.28).delaytime(0.1875).delayfeedback(0.4)
+  .room(0.25).size(0.4)
+  .mask("<0 0 1 1>/8")
+
+stack(bateria, sub, bass, stabs, lead).postgain(0.9)

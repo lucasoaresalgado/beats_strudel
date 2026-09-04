@@ -1,0 +1,46 @@
+// cold, stuttering, four chords that never resolve
+setcpm(140/4)
+
+let chords = "<[d#3,f#3,a#3,f4] [b2,d#3,f#3,a#3] [g#2,b2,d#3,f#3] [f#2,a#2,c#3,g#3]>"
+
+stack(
+  // broken kick — lands off the grid on purpose
+  s("bd ~ ~ bd ~ bd ~ ~ ~ ~ bd ~ ~ bd ~ ~")
+    .bank("RolandTR909").gain(1.1).lpf(700),
+
+  // crunchy claps + snare
+  s("~ ~ ~ ~ cp ~ ~ ~ ~ ~ sd ~ cp ~ ~ sd")
+    .bank("RolandTR909").gain(.85).crush(8).room(.3),
+
+  // skittering hats
+  s("hh*16").bank("RolandTR909")
+    .gain(sine.range(.25,.6).fast(3))
+    .degradeBy(.25).pan(rand),
+
+  s("~ ~ rim ~").bank("RolandTR909")
+    .gain(.4).sometimesBy(.3, ply(2)),
+
+  // the chord loop — plucked, filtered, drifting
+  note(chords)
+    .struct("t ~ t ~ ~ t ~ ~")
+    .sound("sawtooth").attack(.02).release(.3).clip(.9)
+    .lpf(perlin.range(500,1600).slow(8)).lpq(6)
+    .gain(.35).room(.6).size(4).pan(.4),
+
+  // same chords an octave up, as a pad
+  note(chords).add(note(12))
+    .sound("triangle").attack(1).release(2)
+    .gain(.18).room(.8)
+    .delay(.4).delaytime(.375).delayfeedback(.5),
+
+  // sub
+  note("<d#1 b0 g#0 f#0>")
+    .struct("t ~ ~ t ~ ~ t ~")
+    .sound("sine").attack(.01).release(.2).gain(.9),
+
+  // ghost blips
+  note("<a#4 f#4 d#5 c#5>*4")
+    .sound("square").decay(.05).sustain(0).gain(.12)
+    .degradeBy(.6).jux(rev)
+    .delay(.5).delaytime(.1875).room(.5)
+)

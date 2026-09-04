@@ -1,0 +1,59 @@
+// five against four, and something wrong in the machine
+setcpm(130/4)
+
+let bloom = "{f4 c5 a4 f5 c5}%8"
+
+stack(
+  // loose, shuffled kit — the "live drummer falling downstairs" feel
+  s("bd ~ [~ bd] ~ ~ bd ~ ~")
+    .bank("RolandTR808").gain(1).lpf(600).shape(.3),
+
+  s("~ ~ sd ~ ~ ~ [sd ~ sd] ~")
+    .bank("AkaiLinn").gain(.7).room(.4).size(3)
+    .sometimesBy(.15, ply("<2 3 4>").gain(.5).speed(rand.range(.7,1.4))),
+
+  s("hh*8").bank("AkaiLinn")
+    .gain(saw.range(.5,.2).fast(2))
+    .nudge("0 .01 -.005 .015".fast(2))
+    .degradeBy(.2).pan(perlin.range(.3,.7)),
+
+  // aphex break: chopped, reversed, pitched
+  s("breaks165").fit().chop(8)
+    .gain(.32).lpf(2500)
+    .sometimesBy(.25, rev)
+    .sometimesBy(.2, speed("<-1 1.5 .5>"))
+    .rarely(ply(4)).room(.2),
+
+  // THE piano loop — five notes, eight slots, forever sliding
+  note(bloom)
+    .sound("piano")
+    .gain(.55).clip(.4)
+    .room(.7).size(5).pan(.45)
+    .sometimesBy(.08, add(note(12))),
+
+  // ghost of the same loop, delayed and detuned — aphex bells
+  note(bloom).add(note("<0 -.13 .08 -.05>"))
+    .sound("triangle").attack(.005).decay(.4).sustain(0)
+    .gain(.14)
+    .delay(.55).delaytime(.1875).delayfeedback(.62)
+    .lpf(perlin.range(1200,4000).slow(11))
+    .degradeBy(.4).jux(rev),
+
+  // fat, wandering bass — F Bb Db C
+  note("<f2 [f2 ~ bb1] db2 [c2 ~ c2]>")
+    .sound("sawtooth").attack(.03).release(.5)
+    .lpf(sine.range(180,520).slow(6)).lpq(8)
+    .gain(.75).shape(.2),
+
+  // swell — the choir-ish smear underneath
+  note("<[f3,c4,a4] [bb3,f4,d5] [db4,ab4,f5] [c4,g4,e5]>")
+    .sound("sawtooth")
+    .attack(2).release(3).gain(.11)
+    .lpf(900).room(.9).size(8).pan(.55),
+
+  // granular chirps, occasional
+  note("f6 c6 ~ a5 ~ ~ c6 ~".fast(2))
+    .sound("square").decay(.03).sustain(0)
+    .gain(.09).degradeBy(.75)
+    .crush(6).delay(.4).delaytime(.09).room(.6)
+)

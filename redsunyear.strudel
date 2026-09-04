@@ -1,0 +1,65 @@
+// suicideyear × radiocore × atmosferic drift × pilotredsun
+setcps(0.8)
+
+const bateria = stack(
+  s("bd ~ ~ ~ ~ ~ bd ~").bank("RolandTR909")
+    .gain(1).shape(0.45)
+    .lpf(perlin.range(500,1600).slow(19)),
+  s("~ ~ ~ ~ sd ~ ~ ~").bank("RolandTR909")
+    .gain(0.65).room(0.85).size(0.9).orbit(2)
+    .sometimesBy(0.15, x => x.ply(3).gain(0.25)),
+  s("hh*8").bank("RolandTR909")
+    .gain(sine.range(0.12,0.4).fast(3))
+    .pan(perlin.range(0.25,0.75))
+    .degradeBy(0.4)
+    .mask("<1 1 1 0>/2"),
+  s("~ ~ oh ~").bank("RolandTR909")
+    .gain(0.2).room(0.6).degradeBy(0.65)
+).swingBy(1/6, 8)
+ .speed(perlin.range(0.985,1.015).slow(6))   // tape flutter (samples only)
+
+const sub = note("<f1 f1 db1 ab1>")
+  .s("sine")
+  .penv(-3).pattack(0.06).pcurve(1)
+  .attack(0.01).decay(0.45).sustain(0.3).release(0.25)
+  .gain(0.85).shape(0.3).lpf(120)
+
+const plucks = note("{f3 ab3 c4 eb4 bb3}%8")
+  .s("sawtooth")
+  .cutoff(perlin.range(300,2600).slow(40))
+  .resonance(14)
+  .attack(0.004).decay(0.09).sustain(0).release(0.06)
+  .gain(0.45)
+  .room(0.5).size(0.7)
+  .delay(0.4).delaytime(0.234).delayfeedback(0.6)
+  .pan(perlin.range(0.3,0.7).slow(12))
+  .vib(4.5).vibmod(0.12)
+  .sometimesBy(0.18, x => x.ply(2).gain(0.3))
+  .sometimesBy(0.12, x => x.crush(6))
+  .every(6, x => x.rev())
+  .mask("<1 1 1 1 1 0 1 1>/4")
+  .swingBy(1/6, 8)
+
+const pad = note("<[f2,ab2,c3,eb3] [db2,f2,ab2,c3] [ab2,c3,eb3,g3] [eb2,g2,bb2,db3]>")
+  .s("supersaw").spread(0.6)
+  .attack(0.8).release(2.5).sustain(0.8)
+  .cutoff(sine.range(350,1100).slow(55))
+  .vowel("<a o e u>/2")
+  .gain(0.32).room(0.9).size(0.95).orbit(3)
+  .slow(4)
+
+const lead = note("<[c5 ~ eb5 f5] [~ g5 ~ bb4] [c5 eb5 ~ ab5] [~ f5 g5 ~]>")
+  .add(note("[0,0.14]"))              // manual detune — two copies beating
+  .s("triangle")
+  .vib(5.5).vibmod(0.35)
+  .penv(1.5).pattack(0.09).pcurve(0)
+  .attack(0.01).decay(0.3).sustain(0.15).release(0.4)
+  .cutoff(2800)
+  .gain(0.28)
+  .room(0.7).size(0.8).orbit(3)
+  .delay(0.35).delaytime(0.234).delayfeedback(0.5)
+  .pan(sine.range(0.35,0.65).slow(9))
+  .mask("<0 1 0 1 1 1 0 1>/2")
+  .every(8, x => x.add(note(5)))
+
+stack(bateria, sub, plucks, lead, pad).postgain(0.9)

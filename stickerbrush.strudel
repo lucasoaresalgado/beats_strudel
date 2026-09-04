@@ -1,0 +1,67 @@
+// stickerbush symphony × radiocore
+setcps(0.8)
+
+// F#m — Wise's home turf
+const pad = note("<[fs2,a2,cs3,e3] [d2,fs2,a2,cs3] [b1,d2,fs2,a2] [e2,gs2,b2,d3]>")
+  .s("z_square").spread(0.5)
+  .attack(1.2).release(3).sustain(0.85)
+  .cutoff(sine.range(400,1300).slow(37))
+  .gain(0.3).room(0.9).size(0.95).orbit(3)
+  .slow(4)
+
+// the arpeggio: 5 notes over 8 slots, dotted-8th delay doing the counterpoint
+const arp = note("{fs4 a4 cs5 e5 b4}%8")
+  .add(note("[0,0.09]"))
+  .s("triangle")
+  .cutoff(perlin.range(1200,4000).slow(31))
+  .attack(0.004).decay(0.16).sustain(0.05).release(0.2)
+  .gain(0.4)
+  .room(0.75).size(0.85)
+  .delay(0.5).delaytime(0.234).delayfeedback(0.62)
+  .pan(perlin.range(0.3,0.7).slow(11))
+  .every(6, x => x.rev())
+  .every(8, x => x.add(note(-5)))
+  .mask("<1 1 1 1 1 1 0 1>/4")
+
+// upper shimmer — sparse, the sparkle over the canopy
+const shimmer = note("{cs6 e6 fs6 a5}%16")
+  .s("sine")
+  .attack(0.002).decay(0.08).sustain(0).release(0.15)
+  .gain(0.14)
+  .degradeBy(0.72)
+  .pan(perlin.range(0.1,0.9))
+  .room(0.95).size(0.9).orbit(3)
+  .delay(0.4).delaytime(0.117).delayfeedback(0.5)
+
+// lead: slow, breathing, with the vibrato Wise leans on
+const lead = note("<fs4 ~ a4 cs5 ~ b4 ~ e4>/2")
+  .s("triangle")
+  .vib(4.5).vibmod(0.2)
+  .penv(0.8).pattack(0.14).pcurve(0)
+  .attack(0.12).decay(0.5).sustain(0.5).release(1.2)
+  .cutoff(2200)
+  .gain(0.24)
+  .room(0.85).size(0.9).orbit(3)
+  .delay(0.3).delaytime(0.234).delayfeedback(0.45)
+  .mask("<0 1 1 1 0 1 1 1>/4")
+
+// 909, but softened way down — this is a groove, not a beat
+const bateria = stack(
+  s("bd ~ ~ ~ ~ ~ bd ~").bank("RolandTR909")
+    .gain(0.75).lpf(perlin.range(300,900).slow(23)),
+  s("~ ~ ~ ~ rim ~ ~ ~").bank("RolandTR909")
+    .gain(0.4).room(0.7).size(0.8).orbit(2),
+  s("hh*8").bank("RolandTR909")
+    .gain(sine.range(0.08,0.26).fast(3))
+    .pan(perlin.range(0.3,0.7))
+    .degradeBy(0.5)
+    .mask("<1 1 0 1>/2")
+).swingBy(1/8, 8)
+
+const sub = note("<fs1 d1 b0 e1>")
+  .s("sine")
+  .attack(0.02).decay(0.6).sustain(0.4).release(0.4)
+  .gain(0.7).lpf(140)
+  .slow(4)
+
+stack(pad, sub, bateria, arp, shimmer, lead).postgain(0.9)
