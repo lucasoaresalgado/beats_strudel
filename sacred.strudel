@@ -1,0 +1,84 @@
+samples('github:tidalcycles/dirt-samples')
+
+setcpm(68/4)
+
+let arpA = "a4 c5 e5 [d5 c5] b4 g4"
+let arpB = "a4 c5 e5 g5 [e5 d5] c5"
+let arpC = "~ c5 e5 [a5 g5] e5 [d5 c5]"
+let arpD = "a4 [c5 d5] e5 ~ b4 [g4 a4]"
+let arp = "<0 1 0 2 0 1 3 2>".pick([arpA, arpB, arpC, arpD])
+
+let wow = perlin.range(-.09,.09).slow(23)
+
+let open  = "<1 1 1 1 0 0 0 0>".slow(2)   
+let beat  = "<0 0 0 0 1 1 1 1>".slow(2)  
+let lift  = "<0 0 0 0 0 0 1 1>".slow(2)   
+
+stack(
+
+  // --- ar: hiss de fita filtrado, respirando ---
+  s("pink*2").gain(sine.range(.03,.07).slow(19))
+    .lpf(4000).hpf(220).room(.4).size(6),
+
+
+  note(arp).add(note(wow))
+    .sound("gm_electric_guitar_clean")
+    .add(note("0,.05"))
+    .attack(.003).decay(.5).sustain(0).release(.6)
+    .lpf(3200).lpq(2).gain(.36)
+    .room(.85).size(9).pan(.44)
+    .delay(.42).delaytime(.3333).delayfeedback(.55)
+    .superimpose(x => x.add(note(12)).gain(.09).late(.1666).pan(.62)),
+
+
+  note(arp).add(note(-12)).add(note(wow))
+    .struct("t ~ t ~ ~ t")
+    .sound("sine").attack(.02).release(1.1).gain(.2)
+    .room(.9).size(11).pan(.55)
+    .mask(open),
+
+  // --- 808 redondo: sem shape pesado, deixa a nota inteira soar ---
+  note("<a1 a1 f1 g1 a1 a1 c2 e1>")
+    .struct("t ~ ~ ~ [~ t] ~ ~ ~")
+    .sound("sine").attack(.01).release(2.2)
+    .gain(.95).shape(.18).lpf(180)
+    .mask(beat),
+
+
+  s("bd ~ ~ ~ [~ bd] ~ ~ ~")
+    .bank("RolandTR808").gain(.75).lpf(260).shape(.2)
+    .room(.25)
+    .mask(beat),
+
+
+  s("~ ~ ~ ~ sd ~ ~ ~")
+    .bank("RolandTR909").gain(.45)
+    .speed(.78).lpf(3500)
+    .room(.92).size(12).orbit(2)
+    .mask(beat),
+
+
+  s("hh*8").bank("RolandTR808")
+    .speed(1.05)
+    .gain(sine.range(.07,.16).slow(11))
+    .degradeBy(sine.range(.35,.7).slow(13))
+    .pan(perlin.range(.35,.65))
+    .sometimesBy(.12, x => x.ply(2).gain(.08))
+    .mask(beat),
+
+  // --- coral: voz como textura, entra tarde e some ---
+  s("space").fit().chop(4)
+    .speed(.45).gain(.11)
+    .lpf(1200).hpf(300)
+    .room(.95).size(14).orbit(3)
+    .degradeBy(.6)
+    .sometimesBy(.3, x => x.rev())
+    .mask(lift),
+
+  // --- pad: a "igreja" da faixa, ataque longuíssimo ---
+  note("<[a2,e3,a3] [f2,c3,f3] [g2,d3,g3] [e2,b2,e3]>")
+    .add(note(wow))
+    .sound("sawtooth").attack(4).release(5)
+    .gain(.1).lpf(perlin.range(500,1100).slow(29)).lpq(2)
+    .room(.95).size(14)
+)
