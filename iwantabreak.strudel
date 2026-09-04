@@ -1,0 +1,99 @@
+samples('github:tidalcycles/dirt-samples')
+
+setcpm(82/4)
+
+// xtaldrift — Xtal (SAW 85-92) passado pelo processo do Atmosferic Drift:
+//   do Xtal:   break solto, arpejo doce, voz sem letra, calor analógico
+//   do Drift:  tudo desacelerado, saturado de fita, voz virando textura
+// O break NÃO é programado nota a nota: é sample picotado e tocado
+// devagar, que é o que dá o arrasto de chopped and screwed.
+
+// E menor com 9ª — o intervalo doce que o Xtal usa e o Dirt não usava
+let arpA = "e4 b4 [d5 f#5] a4 ~ [b4 d5] f#4 ~"
+let arpB = "e4 [g4 b4] d5 ~ [f#5 e5] b4 ~ a4"
+let arpC = "~ b4 d5 [e5 f#5] ~ b4 [a4 g4] ~"
+let arpD = "e4 b4 [d5 f#5] [a5 g5] ~ [b4 d5] ~ e4"
+let arp = "<0 1 0 2 3 1 0 2>".pick([arpA, arpB, arpC, arpD])
+
+// duas fitas: uma rápida (flutter) e uma lenta (wow) — somadas
+let flutter = perlin.range(-.05,.05).slow(4)
+let wow     = perlin.range(-.13,.13).slow(19)
+let tape    = flutter.add(wow)
+
+let dawn = "<1 1 1 0 0 0 0 0>".slow(2)   // só arpejo e pad
+let body = "<0 0 1 1 1 1 1 1>".slow(2)   // break e sub
+let haze = "<0 0 0 0 1 1 0 1>".slow(2)   // voz-textura entra e sai
+
+stack(
+
+  // --- fita: hiss + zumbido de 60Hz, a "cola" analógica ---
+  s("pink*2").gain(sine.range(.04,.08).slow(23))
+    .lpf(4800).hpf(200).room(.35),
+
+  // --- BREAK: sample picotado, tocado lento, meio dentro do reverb ---
+  s("breaks125").fit().chop(8)
+    .speed(.72)
+    .gain(.55).lpf(perlin.range(2200,6000).slow(17)).shape(.2)
+    .room(.45).size(6).orbit(2)
+    .sometimesBy(.18, x => x.ply(2).gain(.4))
+    .rarely(x => x.rev())
+    .degradeBy(.08)
+    .mask(body),
+
+  // --- kick de reforço: o break sozinho não segura o grave ---
+  s("bd ~ ~ [~ bd] ~ ~ bd ~")
+    .bank("RolandTR909").gain(.8).lpf(300).shape(.3)
+    .room(.25)
+    .mask(body),
+
+  // --- ARPEJO: 8 slots, mas a figura roda e nunca soa igual duas vezes ---
+  note(arp).add(note(tape))
+    .sound("sawtooth")
+    .add(note("0,.08,-.06"))              // três osciladores desafinados
+    .attack(.006).decay(.42).sustain(0).release(.5)
+    .lpf(perlin.range(900,2800).slow(21)).lpq(6)
+    .gain(.32).shape(.18)
+    .room(.8).size(9).pan(.42)
+    .delay(.38).delaytime(.375).delayfeedback(.5)
+    .superimpose(x => x.add(note(12)).gain(.08).late(.125).pan(.64)),
+
+  // --- contra-melodia: mesma frase, oitava abaixo, rala ---
+  note(arp).add(note(-12)).add(note(tape))
+    .struct("t ~ ~ t ~ t ~ ~")
+    .sound("triangle").attack(.01).decay(.6).sustain(0).release(.8)
+    .lpf(1400).gain(.22)
+    .room(.85).size(10).pan(.58)
+    .mask(body),
+
+  // --- sub: redondo, sem estourar (aqui não é 808 de trap) ---
+  note("<e1 e1 c1 g1 e1 e1 a0 b0>")
+    .struct("t ~ ~ ~ t ~ ~ ~")
+    .sound("sine").attack(.02).release(1.8)
+    .gain(.9).shape(.15).lpf(170)
+    .mask(body),
+
+  // --- VOZ COMO TEXTURA: o traço central do Atmosferic Drift ---
+  s("space").fit().chop(6)
+    .speed(.5).gain(.14)
+    .lpf(1600).hpf(280).crush(9)
+    .room(.95).size(13).orbit(3)
+    .degradeBy(.5)
+    .sometimesBy(.28, x => x.rev())
+    .sometimesBy(.12, x => x.speed(.25))
+    .mask(haze),
+
+  // --- shaker/hat leve: mantém o pulso quando o break degrada ---
+  s("hh*8").bank("RolandTR909")
+    .speed(1.1)
+    .gain(sine.range(.06,.14).slow(9))
+    .degradeBy(sine.range(.4,.75).slow(11))
+    .pan(perlin.range(.3,.7))
+    .mask(body),
+
+  // --- pad: acordes quentes, ataque longo, o "sol" da faixa ---
+  note("<[e3,g3,b3,f#4] [c3,g3,b3,e4] [a2,e3,g3,b3] [b2,f#3,a3,d4]>")
+    .add(note(tape))
+    .sound("sawtooth").attack(3.5).release(4.5)
+    .gain(.11).lpf(perlin.range(600,1400).slow(31)).lpq(3)
+    .room(.95).size(13)
+)
